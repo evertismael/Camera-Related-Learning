@@ -68,7 +68,9 @@ def collect_camera_calibration_images(args):
     cv2.destroyAllWindows()
 
 if __name__=='__main__':
-    parser = argparse.ArgumentParser(prog='CamImgCollect', description='Collection of images for camera calibration. Intrinsic Params')
+    parser = argparse.ArgumentParser(prog='CamImgCollect', description='RUN THIS in the Rpi. Collection of images for camera calibration. Intrinsic Params')
     parser.add_argument('-o', '--out_dir', type=str, default='./cal_imgs/'+datetime.now().strftime('%m%d-%H%M%S'), help='OutputDirectory')
     args = parser.parse_args()
+    print("RUNT THIs in the RPI")
+    print(args)
     collect_camera_calibration_images(args)

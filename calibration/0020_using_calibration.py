@@ -2,12 +2,19 @@ import cv2
 import numpy as np
 
 
-cal_file_pref = './out/cal1'
+cal_file_pref = './out/0413-222615/'
 mtx = np.load(cal_file_pref + '_mtx.npy')
 dist = np.load(cal_file_pref + '_dist.npy')
 
+print('-------------------------------------')
+print('mtx')
+print(mtx)
+print('dist')
+print(dist)
+
+
 # case 1. compensate for distortion of the image:
-image_file='./img/PXL_20240823_140303256.jpg'
+image_file='./cal_imgs/0000_default/0_chess.png'
 
 frame = cv2.imread(image_file)
 frame_nodist = cv2.undistort(frame,mtx,dist,None,None)

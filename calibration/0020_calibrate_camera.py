@@ -22,6 +22,7 @@ def calibrate_camera(args):
     P_pxl_list = [P_pxl for P_pxl,rl in zip(P_pxl_list,ret_list) if rl==True]
 
     if not P_chs_list or not P_pxl_list:
+        print(np.array(ret_list))
         print('Chessboard was not found in none of the images')
         return
     # Step2: Compute the calibration, and return the matrices: (img_size(is reverted))
@@ -59,12 +60,13 @@ def calibrate_camera(args):
 
 if __name__=='__main__':
     parser = argparse.ArgumentParser(prog='CamCalib', description='Based on images of a given directory, it estimates the camera intrinsic parameters')
-    parser.add_argument('-i', '--img_dir', type=str, default='./cal_imgs/000_default/', help='directory of calibration images')
+    parser.add_argument('-i', '--img_dir', type=str, default='./cal_imgs/0000_default/', help='directory of calibration images')
     parser.add_argument('-o', '--out_dir', type=str, default='./out/'+datetime.now().strftime('%m%d-%H%M%S'), help='output directory to save intrinsic params')
     parser.add_argument('-s', '--scale', type=bool, default=False, help='in case the image is too big, it resize the image to (640,480)')
     parser.add_argument('-p','--pattern_size', type=str, default="[6,4]", help='pattern size, default [6,4]')
     args = parser.parse_args()
     args.pattern_size = list(map(int, args.pattern_size.strip('[]').split(',')))
 
+    print(args)
     calibrate_camera(args)
 

@@ -1,18 +1,19 @@
 import cv2, glob
 import numpy as np
-from utils import  find_sequence_chessboard_points, inv_svd
+from libs.utils import  find_chessboard_on_image_files, inv_svd
 
 
 
-image_file = './img/PXL_20240823_140303256.jpg'
-ptrn_size, scale_down = ((10,7)), False
-P_chs_list, P_pxl_list,img_size = find_sequence_chessboard_points([image_file],ptrn_size,scale_down)
+image_file = './img/0_chess.png'
+ptrn_size, scale_down = ((6,4)), False
+ret_list, P_chs_list, P_pxl_list, img_size = find_chessboard_on_image_files([image_file],ptrn_size,scale_down)
+assert ret_list[0]==True, 'Pattern not found in image. Check that pattern is correctly configured'
 P_w = P_chs_list[0].T
 P_pxl = P_pxl_list[0].T
 
 
 # load camera calibration params:
-cal_file_pref = './out/cal1'
+cal_file_pref = './calibration/0000_default/'
 mtx = np.load(cal_file_pref + '_mtx.npy')
 dist = np.load(cal_file_pref + '_dist.npy')
 img_size = np.load(cal_file_pref + '_imgsize.npy')
@@ -42,7 +43,7 @@ P_w_hat = R.T.dot(Z_c*Ainv.dot(U) - T)
 
 
 np.set_printoptions(formatter={'float': lambda x: "{0:0.3f}".format(x)})
-for i in range(70):
+for i in range(P_w.shape[1]):
     print(P_w_hat[:,i], P_w[:,i])
     a=3
 

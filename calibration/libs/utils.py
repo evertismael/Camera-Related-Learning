@@ -27,7 +27,6 @@ def inv_svd(A):
 
     return A_inv
 
-
 def detect_chess_board_points(frame, ptrn_size):
     # Precompute Pw positions: By default cv2 locates the origin at the left-upper corner.
     # format: (0,0,0),(1,0,0),(2,0,0)......(last,last,0)
@@ -53,9 +52,6 @@ def detect_chess_board_points(frame, ptrn_size):
         P_chs = []
         P_pxl = []
     return ret, P_chs, P_pxl
-
-
-
 
 def find_chessboard_on_image_files(chess_img_files, ptrn_size, scale_down:False):
     ''' Collects the pair of points in chess and pixel coords.
@@ -112,9 +108,6 @@ def uv2XYZ(P_pxl, Ainv, R_cam_wall, T_cam_wall):
     P_w_hat = R_cam_wall.T.dot(Z_c*Ainv.dot(U) - T_cam_wall)
 
     return P_w_hat
-
-
-
 
 def load_RTA_camera_matrices(path='./out/camera'):
     R_cam = np.load(path + '_R_cam.npy')
