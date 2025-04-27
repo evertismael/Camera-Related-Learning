@@ -1,13 +1,17 @@
 import matplotlib.pyplot as plt
 import numpy as np
+plt.ion()
 
 def make_figure(x_lim, y_lim, z_lim):
-    ax = plt.figure().add_subplot(projection='3d')
+    fig = plt.figure()
+    ax = fig.add_subplot(projection='3d')
     ax.set_xlim(x_lim)
     ax.set_ylim(y_lim)
     ax.set_zlim(z_lim)
+
     plt.gca().set_aspect('equal', adjustable='box')
-    return ax
+    plt.show()
+    return fig,ax
 
 
 def plot_coord_sys(M_world_sys, scale, sys_name, ax, alpha):
@@ -25,4 +29,3 @@ def plot_coord_sys(M_world_sys, scale, sys_name, ax, alpha):
     ax.plot(xyz1_w[0,2:4], xyz1_w[1,2:4], xyz1_w[2,2:4], color='green', alpha=alpha)
     ax.plot(xyz1_w[0,4:], xyz1_w[1,4:], xyz1_w[2,4:], color='blue', alpha=alpha)
     ax.text(xyz1_w[0,0], xyz1_w[1,0], xyz1_w[2,0], sys_name, 'x', color='black', alpha=alpha)
-    

@@ -24,18 +24,20 @@ K = mtx_new
 Kinv = inv_svd(K)
 
 
-# compute Z_c for all points over the plane:
-# Z_c = <r_3^T, T> / <r_3^T, Ainv U>
-# with U = [u,v,1]^T
-# r_3 is the third column of R
-U = np.row_stack((P_pxl,np.ones((1,P_pxl.shape[1]))))
-r3 = R[:,2,None]
-Z_c = r3.T.dot(T)/r3.T.dot(Kinv.dot(U))
+def img_to_plane(R_cp, p_c, P_pxl):
+    # compute Z_c for all points over the plane:
+    # Z_c = <r_3^T, T> / <r_3^T, Ainv U>
+    # with U = [u,v,1]^T
+    # r_3 is the third column of R
+    U = np.row_stack((P_pxl,np.ones((1,P_pxl.shape[1]))))
+    r3 = R_cp[:,2,None]
+    Z_c = r3.T.dot(p_c)/r3.T.dot(Kinv.dot(U))
 
-# compute XYZ:
-P_w_hat = R.T.dot(Z_c*Kinv.dot(U) - T)
+    # compute XYZ:
+    P_w_hat = R_cp.T.dot(Z_c*Kinv.dot(U) - p_c)
+    return P_w_hat
 
-
+P_w_hat = img_to_plane(R_cp=R, p_c=T, P_pxl=P_pxl)
 np.set_printoptions(formatter={'float': lambda x: "{0:0.3f}".format(x)})
 for i in range(P_w.shape[1]):
     print(P_w_hat[:,i], P_w[:,i])

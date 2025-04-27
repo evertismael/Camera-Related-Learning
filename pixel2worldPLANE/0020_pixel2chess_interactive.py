@@ -13,7 +13,18 @@ def get_cursor_position(event,x,y,flags,param):
     elif event== cv2.EVENT_MOUSEMOVE:
         Pm = (x,y)
 
+def img_to_plane(R_cp, p_c, P_pxl, Kinv):
+    # compute Z_c for all points over the plane:
+    # Z_c = <r_3^T, T> / <r_3^T, Ainv U>
+    # with U = [u,v,1]^T
+    # r_3 is the third column of R
+    U = np.vstack((P_pxl,np.ones((1,P_pxl.shape[1]))))
+    r3 = R_cp[:,2,None]
+    Z_c = r3.T.dot(p_c)/r3.T.dot(Kinv.dot(U))
 
+    # compute XYZ:
+    P_w_hat = R_cp.T.dot(Z_c*Kinv.dot(U) - p_c)
+    return P_w_hat
 
 Pm = (0,0) # current mouse position.
 Pm_list = [] # pixel points.
@@ -22,8 +33,8 @@ Pm_list = [] # pixel points.
 cv2.namedWindow('image-plane')
 cv2.setMouseCallback('image-plane', get_cursor_position)
 
-x_lim, y_lim, z_lim = [-50,50], [-20,20], [-20,20]
-ax = make_figure(x_lim, y_lim, z_lim)
+x_lim, y_lim, z_lim = [-5,5], [0,15], [-5,5]
+fig, ax = make_figure(x_lim, y_lim, z_lim)
 
 
 def pixel2world(args):
@@ -34,38 +45,62 @@ def pixel2world(args):
     # Extrinsic Calibration:
     ptrn_size = [int(a) for a in args.pattern.split(',')]
     ret_list, P_chs_list, P_pxl_list,img_size = find_chessboard_on_image_files([args.img_world],ptrn_size, False)
-    P_c = P_chs_list[0].T   # (3, Npoints)
+    P_p = P_chs_list[0].T   # (3, Npoints)
     P_pxl = P_pxl_list[0].T # (2, Npoints)
     _, dist, img_size, K, _ = load_camera_calibration_matrices(args.calib_dir)
     Kinv = inv_svd(K)
-    ret, rvec, tvec =cv2.solvePnP(P_c.T,P_pxl.T, K , dist)
-    #M_cam_ch = make_transformation_matrix(rvec, tvec)
-    M_cam_w = make_transformation_matrix(np.array([[0.,0.,np.pi/2]]), np.array([[0.,0.,0.]]).T)
+
+    # obtain H_cp: from chess-Plane to Camera frame
+    ret, rvec_cp, p_c =cv2.solvePnP(P_p.T,P_pxl.T, K , dist)
+    H_cp = make_transformation_matrix(rvec_cp, p_c)
+    H_pc = np.linalg.pinv(H_cp)
+
+    # camera orientation: from world to camera frame:
+    H_cw = make_transformation_matrix(np.array(np.deg2rad([90,0,0])), np.zeros_like(p_c))
+    H_wc = np.linalg.pinv(H_cw)
+
+    # plot world and camera frames:
+    plot_coord_sys(np.eye(4), scale=100, sys_name='W', ax=ax, alpha=.1)
+    ax.set_xlabel('x[u]'), ax.set_ylabel('y[u]'), ax.set_zlabel('z[u]')
+    plot_coord_sys(H_wc, scale=5, sys_name='Camera', ax=ax, alpha=1)
     
-    plot_coord_sys(M_cam_w, scale=10, sys_name='Camera', ax=ax, alpha=1)
+    # print chessboard points in 3D:
+    P1_p = np.concat((P_p, np.ones((1,P_p.shape[1]))),axis=0)
+    P1_w =  H_wc.dot(H_cp.dot(P1_p))
+    ax.scatter(P1_w[0,:], P1_w[1,:], P1_w[2,:], s=1, alpha=0.3, c='k')
+    m_hdlr = ax.scatter([],[], [], s=1, alpha=1, c='r')
     
-    # TODO: plot camera numpy and convert the image of the cursor over the image and mtplotlib
-
-
-
+    
+    plt.draw()
+    plt.pause(0.001)
     while True:
         img_pc = img_p.copy()
-                
+
+        # points to plane:
+        if len(Pm_list)>0:
+            Pm_pxl = np.array(Pm_list).T
+            Pm_p_hat = img_to_plane(R_cp=H_cp[:3,:3], p_c=H_cp[:3,3,None], P_pxl=Pm_pxl, Kinv=Kinv)
+
+            # compute XYZ:
+            Pm1_p_hat = np.concat((Pm_p_hat, np.ones((1,Pm_p_hat.shape[1]))),axis=0)
+            Pm1_w_hat =  H_wc.dot(H_cp.dot(Pm1_p_hat))
+            m_hdlr.remove()
+            m_hdlr = ax.scatter(Pm1_w_hat[0,:], Pm1_w_hat[1,:], Pm1_w_hat[2,:], s=10, alpha=1, c='r')
+
         # print Pm over list:
         for p in Pm_list:
             p = np.array(p).astype(int)
             cv2.circle(img_pc,p,1, (0,0,255),2)
 
-        
         # print:
-        plt.show()
+        plt.draw()
+        plt.pause(0.001)
         cv2.imshow('image-plane',img_pc)
         key = cv2.waitKey(1)
         if key==ord('q'):
             break
         elif key==ord('r'):
             Pm_list = []
-
     cv2.destroyAllWindows()
 
 
