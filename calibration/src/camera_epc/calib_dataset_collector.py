@@ -1,6 +1,7 @@
 import cv2
 import os
 import time, argparse
+from pathlib import Path
 from datetime import datetime
 from camera_epc.utils import detect_chess_board_points
 
@@ -23,6 +24,12 @@ def collect_camera_calibration_images(args):
 
     # collect images:
     idx = 0
+    print('----------------------------------')
+    print('Collect imagess')
+    print('----------------------------------')
+    print('c: collect, q: quit')
+    print('----------------------------------')
+    
     while True:
         ret, frame = cam.read()
         frame_to_save = frame.copy()
@@ -69,8 +76,11 @@ def collect_camera_calibration_images(args):
 
 if __name__=='__main__':
     parser = argparse.ArgumentParser(prog='CamImgCollect', description='RUN THIS in the Rpi. Collection of images for camera calibration. Intrinsic Params')
-    parser.add_argument('-o', '--out_dir', type=str, default='./output/calib_imgs/'+datetime.now().strftime('%m%d-%H%M%S'), help='OutputDirectory')
+    parser.add_argument('-o', '--out_dir', type=str, required=True, help='OutputDirectory')
     args = parser.parse_args()
+
+    assert os.path.isdir(args.out_dir) , f"out_directory must exists. please create forlder: {args.out_dir}"
+    args.out_dir = args.out_dir + '/' + datetime.now().strftime('%m%d-%H%M%S') + '/'
+    Path(args.out_dir).mkdir(parents=True, exist_ok=True)
     print("RUNT THIs in the RPI")
-    print(args)
     collect_camera_calibration_images(args)
